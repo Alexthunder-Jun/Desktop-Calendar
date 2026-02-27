@@ -28,24 +28,27 @@ class _DailyItemWidget(QWidget):
     def __init__(self, event_id: int, title: str, streak: int, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._event_id = event_id
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setObjectName("itemCard")
 
         lo = QHBoxLayout(self)
-        lo.setContentsMargins(6, 3, 6, 3)
-        lo.setSpacing(8)
+        lo.setContentsMargins(10, 8, 10, 8)
+        lo.setSpacing(10)
 
         cb = QCheckBox()
+        cb.setCursor(Qt.CursorShape.PointingHandCursor)
         cb.toggled.connect(self._on_toggled)
         lo.addWidget(cb)
 
         lbl = QLabel(title)
-        lbl.setStyleSheet("font-size: 12px; color: #1a1a1a;")
+        lbl.setStyleSheet("font-size: 13px; color: #2c2c2c; font-weight: 500;")
         lo.addWidget(lbl, stretch=1)
 
         if streak > 0:
-            badge = QLabel(f"已坚持 {streak} 天")
+            badge = QLabel(f"{streak}天")
             badge.setStyleSheet(
-                "font-size: 10px; color: #0067c0; background: rgba(0,103,192,0.08);"
-                "border-radius: 3px; padding: 1px 6px;"
+                "font-size: 11px; color: #0067c0; background: rgba(0,103,192,0.1);"
+                "border-radius: 4px; padding: 2px 6px; font-weight: 600;"
             )
             lo.addWidget(badge)
 
@@ -104,7 +107,7 @@ class DailyPanel(QWidget):
         self._list_widget.setObjectName("scrollInner")
         self._list_layout = QVBoxLayout(self._list_widget)
         self._list_layout.setContentsMargins(0, 0, 0, 0)
-        self._list_layout.setSpacing(0)
+        self._list_layout.setSpacing(6)
         self._list_layout.addStretch()
         scroll.setWidget(self._list_widget)
         root.addWidget(scroll)

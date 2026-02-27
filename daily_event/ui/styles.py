@@ -12,12 +12,13 @@ def get_stylesheet() -> str:
         font-family: "Segoe UI Variable", "Segoe UI", "Microsoft YaHei",
                      "PingFang SC", "Noto Sans SC", sans-serif;
         font-size: 13px;
+        color: #2c2c2c;
     }
 
     #contentFrame {
-        background-color: rgba(249, 249, 249, 0.82);
-        border-radius: 10px;
-        border: 1px solid rgba(0, 0, 0, 0.06);
+        background-color: rgba(255, 255, 255, 0.92);
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
     }
 
     #topBar {
@@ -25,10 +26,11 @@ def get_stylesheet() -> str:
     }
 
     QLabel#monthLabel {
-        font-size: 15px;
-        font-weight: 600;
+        font-size: 18px;
+        font-weight: 700;
         color: #1a1a1a;
-        padding: 0 8px;
+        padding: 0 10px;
+        font-family: "Segoe UI Variable Display", "Segoe UI", sans-serif;
     }
 
     QPushButton#menuButton,
@@ -37,12 +39,14 @@ def get_stylesheet() -> str:
         border: none;
         border-radius: 6px;
         font-size: 14px;
-        color: #444444;
+        color: #555555;
+        padding: 4px;
     }
 
     QPushButton#menuButton:hover,
     QPushButton#navButton:hover {
         background-color: rgba(0, 0, 0, 0.05);
+        color: #000000;
     }
 
     QPushButton#menuButton:pressed,
@@ -54,19 +58,22 @@ def get_stylesheet() -> str:
         background: transparent;
         border: none;
         border-radius: 6px;
-        font-size: 11px;
-        color: #888888;
+        font-size: 12px;
+        color: #666666;
+        margin-right: 4px;
     }
 
     QPushButton#closeButton:hover {
-        background-color: rgba(196, 43, 28, 0.12);
-        color: #c42b1c;
+        background-color: #c42b1c;
+        color: #ffffff;
     }
 
     QLabel#panelTitle {
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 600;
-        color: #1a1a1a;
+        color: #444444;
+        margin-bottom: 6px;
+        margin-left: 2px;
     }
 
     QPushButton#addButton {
@@ -74,17 +81,31 @@ def get_stylesheet() -> str:
         border: none;
         border-radius: 4px;
         font-size: 18px;
-        font-weight: 300;
+        font-weight: 400;
         color: #0067c0;
+        padding-bottom: 2px;
     }
 
     QPushButton#addButton:hover {
         background-color: rgba(0, 103, 192, 0.08);
     }
 
+    /* Item Cards */
+    QWidget#itemCard {
+        background-color: #ffffff;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        border-radius: 6px;
+    }
+    QWidget#itemCard:hover {
+        background-color: #fdfdfd;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+    }
+
     QLabel#emptyHint {
-        color: #bbbbbb;
-        font-size: 12px;
+        color: #aaaaaa;
+        font-size: 13px;
+        font-style: italic;
     }
 
     QScrollArea {
@@ -103,13 +124,13 @@ def get_stylesheet() -> str:
     }
 
     QScrollBar::handle:vertical {
-        background: rgba(0, 0, 0, 0.12);
+        background: rgba(0, 0, 0, 0.15);
         border-radius: 3px;
         min-height: 30px;
     }
 
     QScrollBar::handle:vertical:hover {
-        background: rgba(0, 0, 0, 0.22);
+        background: rgba(0, 0, 0, 0.25);
     }
 
     QScrollBar::add-line:vertical,
@@ -124,43 +145,50 @@ def get_stylesheet() -> str:
 
     QMenu {
         background-color: #ffffff;
-        border: 1px solid rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(0, 0, 0, 0.1);
         border-radius: 8px;
-        padding: 4px 0;
+        padding: 6px 0;
     }
 
     QMenu::item {
         padding: 8px 32px 8px 16px;
         color: #1a1a1a;
         border-radius: 4px;
-        margin: 2px 4px;
+        margin: 2px 6px;
     }
 
     QMenu::item:selected {
-        background-color: rgba(0, 0, 0, 0.04);
+        background-color: rgba(0, 103, 192, 0.08);
+        color: #0067c0;
     }
 
     QLineEdit#inlineInput {
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-        padding: 4px 8px;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 6px;
+        padding: 6px 10px;
         background: #ffffff;
-        font-size: 12px;
+        font-size: 13px;
     }
 
     QLineEdit#inlineInput:focus {
         border: 1px solid #0067c0;
+        background-color: #ffffff;
     }
 
     QCheckBox {
-        spacing: 6px;
+        spacing: 8px;
     }
 
     QCheckBox::indicator {
-        width: 16px;
-        height: 16px;
-        border-radius: 3px;
-        border: 1.5px solid #999;
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 1px solid #bbbbbb;
+        background: #ffffff;
+    }
+
+    QCheckBox::indicator:hover {
+        border-color: #0067c0;
     }
 
     QCheckBox::indicator:checked {

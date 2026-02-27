@@ -41,30 +41,33 @@ class _WorkItemWidget(QWidget):
         super().__init__(parent)
         self._eid = event_id
         self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setObjectName("itemCard")
 
         lo = QHBoxLayout(self)
-        lo.setContentsMargins(6, 4, 6, 4)
-        lo.setSpacing(8)
+        lo.setContentsMargins(10, 8, 10, 8)
+        lo.setSpacing(10)
 
         cb = QCheckBox()
+        cb.setCursor(Qt.CursorShape.PointingHandCursor)
         cb.setChecked(is_completed)
         cb.toggled.connect(self._on_toggled)
         lo.addWidget(cb)
 
         dot = QLabel()
-        dot.setFixedSize(8, 8)
-        dot.setStyleSheet(f"background: {color_hex}; border-radius: 4px;")
+        dot.setFixedSize(10, 10)
+        dot.setStyleSheet(f"background: {color_hex}; border-radius: 5px;")
         lo.addWidget(dot)
 
         lbl = QLabel(title)
         if is_completed:
-            lbl.setStyleSheet("font-size: 12px; color: #888; text-decoration: line-through;")
+            lbl.setStyleSheet("font-size: 13px; color: #999; text-decoration: line-through;")
         else:
-            lbl.setStyleSheet("font-size: 12px; color: #1a1a1a;")
+            lbl.setStyleSheet("font-size: 13px; color: #2c2c2c; font-weight: 500;")
         lo.addWidget(lbl, stretch=1)
 
-        span = QLabel(f"{start_date.month}/{start_date.day}–{end_date.month}/{end_date.day}")
-        span.setStyleSheet("font-size: 10px; color: #aaa;" if is_completed else "font-size: 10px; color: #888;")
+        span = QLabel(f"{start_date.month}/{start_date.day} - {end_date.month}/{end_date.day}")
+        span.setStyleSheet("font-size: 11px; color: #888;" if not is_completed else "font-size: 11px; color: #aaa;")
         lo.addWidget(span)
 
     def _on_toggled(self, checked: bool) -> None:
@@ -117,7 +120,7 @@ class WorkPanel(QWidget):
         self._list_widget.setObjectName("scrollInner")
         self._list_layout = QVBoxLayout(self._list_widget)
         self._list_layout.setContentsMargins(0, 0, 0, 0)
-        self._list_layout.setSpacing(0)
+        self._list_layout.setSpacing(6)
         self._list_layout.addStretch()
         scroll.setWidget(self._list_widget)
         root.addWidget(scroll)

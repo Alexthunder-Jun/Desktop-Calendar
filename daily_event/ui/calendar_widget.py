@@ -135,7 +135,7 @@ class CalendarWidget(QWidget):
 
     def _paint_grid(self, p: QPainter) -> None:
         font = QFont(p.font())
-        font.setPointSize(10)
+        font.setPointSize(11)
         font.setBold(False)
         p.setFont(font)
 
@@ -147,7 +147,8 @@ class CalendarWidget(QWidget):
                 is_sel = d == self._selected and not is_today
                 is_hover = d == self._hovered and not is_today and not is_sel
 
-                size = min(rect.width(), rect.height()) * 0.62
+                # Slightly smaller circle for today
+                size = min(rect.width(), rect.height()) * 0.58
 
                 if is_today:
                     p.setBrush(QColor(0, 103, 192))
@@ -155,40 +156,45 @@ class CalendarWidget(QWidget):
                     p.drawEllipse(rect.center(), size / 2, size / 2)
                     p.setPen(QColor(255, 255, 255))
                 elif is_sel:
-                    p.setBrush(QColor(0, 103, 192, 25))
+                    p.setBrush(QColor(0, 103, 192, 30))
                     p.setPen(Qt.PenStyle.NoPen)
-                    p.drawEllipse(rect.center(), size / 2, size / 2)
+                    # Rounded rect for selection instead of ellipse
+                    sel_rect = QRectF(0, 0, size, size)
+                    sel_rect.moveCenter(rect.center())
+                    p.drawRoundedRect(sel_rect, 8, 8)
                     p.setPen(QColor(0, 103, 192))
                 elif is_hover:
-                    p.setBrush(QColor(0, 0, 0, 12))
+                    p.setBrush(QColor(0, 0, 0, 8))
                     p.setPen(Qt.PenStyle.NoPen)
-                    p.drawEllipse(rect.center(), size / 2, size / 2)
-                    p.setPen(QColor(30, 30, 30) if is_cur else QColor(190, 190, 190))
+                    hover_rect = QRectF(0, 0, size, size)
+                    hover_rect.moveCenter(rect.center())
+                    p.drawRoundedRect(hover_rect, 8, 8)
+                    p.setPen(QColor(30, 30, 30) if is_cur else QColor(180, 180, 180))
                 else:
-                    p.setPen(QColor(30, 30, 30) if is_cur else QColor(190, 190, 190))
+                    p.setPen(QColor(40, 40, 40) if is_cur else QColor(180, 180, 180))
 
-                text_rect = QRectF(rect.x(), rect.y() + 2, rect.width(), rect.height() * 0.45)
+                text_rect = QRectF(rect.x(), rect.y() + 4, rect.width(), rect.height() * 0.45)
                 p.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, str(d.day))
 
     def _paint_work_segments(self, p: QPainter) -> None:
         if not self._work_segments:
             return
-        line_h = 3.0
-        gap = 1.5
-        base_y_fraction = 0.50
+        line_h = 4.0
+        gap = 2.0
+        base_y_fraction = 0.55
 
         for seg in self._work_segments:
             s_rect = self._cell_rect(seg.row, seg.start_col)
             e_rect = self._cell_rect(seg.row, seg.end_col)
 
-            x1 = s_rect.left() + 3
-            x2 = e_rect.right() - 3
+            x1 = s_rect.left() + 6
+            x2 = e_rect.right() - 6
             base_y = s_rect.top() + s_rect.height() * base_y_fraction
             y = base_y + seg.slot * (line_h + gap)
 
             p.setPen(Qt.PenStyle.NoPen)
             p.setBrush(QColor(seg.color_hex))
-            p.drawRoundedRect(QRectF(x1, y, x2 - x1, line_h), 1.5, 1.5)
+            p.drawRoundedRect(QRectF(x1, y, x2 - x1, line_h), 2.0, 2.0)
 
     # -- mouse interaction --
 
@@ -202,8 +208,8 @@ class CalendarWidget(QWidget):
         for seg in self._work_segments:
             sr = self._cell_rect(seg.row, seg.start_col)
             er = self._cell_rect(seg.row, seg.end_col)
-            base_y = sr.top() + sr.height() * 0.50 + seg.slot * 4.5
-            hit = QRectF(sr.left(), base_y - 2, er.right() - sr.left(), 7)
+            base_y = sr.top() + sr.height() * 0.55 + seg.slot * 6.0
+            hit = QRectF(sr.left(), base_y - 2, er.right() - sr.left(), 8)
             if hit.contains(pos):
                 self.event_clicked.emit(seg.event_id)
                 event.accept()
