@@ -26,6 +26,7 @@ from daily_event.infra.color_allocator import ColorAllocator
 from daily_event.ui.alarm_page import AlarmPage
 from daily_event.ui.calendar_widget import CalendarWidget
 from daily_event.ui.daily_panel import DailyPanel
+from daily_event.ui.history_page import HistoryPage
 from daily_event.ui.menu_panel import MenuPanel
 from daily_event.ui.stats_page import StatsPage
 from daily_event.ui.styles import get_stylesheet
@@ -54,6 +55,7 @@ class MainWindow(QWidget):
         self._quit_requested = False
         self._stats_dialog: StatsPage | None = None
         self._alarm_dialog: AlarmPage | None = None
+        self._history_dialog: HistoryPage | None = None
 
         self._setup_window()
         self._setup_ui()
@@ -164,6 +166,7 @@ class MainWindow(QWidget):
         self._menu_panel = MenuPanel(self)
         self._menu_panel.stats_requested.connect(self._show_stats)
         self._menu_panel.alarm_requested.connect(self._show_alarm)
+        self._menu_panel.history_requested.connect(self._show_history)
 
         self.setStyleSheet(get_stylesheet())
 
@@ -295,6 +298,20 @@ class MainWindow(QWidget):
         self._alarm_dialog.show()
         self._alarm_dialog.raise_()
         self._alarm_dialog.activateWindow()
+
+    def _show_history(self) -> None:
+        if self._history_dialog and self._history_dialog.isVisible():
+            self._history_dialog.raise_()
+            self._history_dialog.activateWindow()
+            return
+        events = self._work_service.get_history()
+        self._history_dialog = HistoryPage(events, self)
+        self._history_dialog.setModal(False)
+        self._history_dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        self._history_dialog.destroyed.connect(lambda: setattr(self, "_history_dialog", None))
+        self._history_dialog.show()
+        self._history_dialog.raise_()
+        self._history_dialog.activateWindow()
 
     # -- alarm timer --------------------------------------------------------
 

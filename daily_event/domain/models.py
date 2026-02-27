@@ -48,6 +48,7 @@ class WorkEvent(Base):
     note: Mapped[Optional[str]] = mapped_column(Text, default="")
     color_index: Mapped[int] = mapped_column(default=0)
     is_completed: Mapped[bool] = mapped_column(default=False)
+    completed_at: Mapped[Optional[datetime]] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
 
 

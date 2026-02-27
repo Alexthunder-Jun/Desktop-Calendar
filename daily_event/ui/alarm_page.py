@@ -45,8 +45,9 @@ class AlarmPage(QDialog):
         self.setWindowTitle("闹钟")
         self.setMinimumSize(440, 400)
         self.setWindowFlags(
-            (self.windowFlags() | Qt.WindowType.Window)
-            & ~Qt.WindowType.WindowContextHelpButtonHint
+            Qt.WindowType.Tool
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowCloseButtonHint
         )
 
         self._mode = 0

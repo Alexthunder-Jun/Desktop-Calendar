@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import calendar as cal_mod
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Optional
 
 from sqlalchemy import select
@@ -57,7 +57,22 @@ class WorkEventService:
             return list(
                 session.execute(
                     select(WorkEvent).order_by(
-                        WorkEvent.is_completed.asc(),
+                        WorkEvent.start_date,
+                    )
+                    .where(WorkEvent.is_completed == False)  # noqa: E712
+                )
+                .scalars()
+                .all()
+            )
+
+    def get_history(self) -> list[WorkEvent]:
+        with self._db.session_scope() as session:
+            return list(
+                session.execute(
+                    select(WorkEvent)
+                    .where(WorkEvent.is_completed == True)  # noqa: E712
+                    .order_by(
+                        WorkEvent.completed_at.desc(),
                         WorkEvent.start_date,
                     )
                 )
@@ -72,8 +87,12 @@ class WorkEventService:
             return list(
                 session.execute(
                     select(WorkEvent)
-                    .where(WorkEvent.start_date <= last, WorkEvent.end_date >= first)
-                    .order_by(WorkEvent.is_completed.asc(), WorkEvent.start_date)
+                    .where(
+                        WorkEvent.start_date <= last,
+                        WorkEvent.end_date >= first,
+                        WorkEvent.is_completed == False,  # noqa: E712
+                    )
+                    .order_by(WorkEvent.start_date)
                 )
                 .scalars()
                 .all()
@@ -84,8 +103,12 @@ class WorkEventService:
             return list(
                 session.execute(
                     select(WorkEvent)
-                    .where(WorkEvent.start_date <= d, WorkEvent.end_date >= d)
-                    .order_by(WorkEvent.is_completed.asc(), WorkEvent.start_date)
+                    .where(
+                        WorkEvent.start_date <= d,
+                        WorkEvent.end_date >= d,
+                        WorkEvent.is_completed == False,  # noqa: E712
+                    )
+                    .order_by(WorkEvent.start_date)
                 )
                 .scalars()
                 .all()
@@ -100,3 +123,4 @@ class WorkEventService:
             event = session.get(WorkEvent, event_id)
             if event:
                 event.is_completed = completed
+                event.completed_at = datetime.now() if completed else None

@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QMenu, QWidget
 class MenuPanel(QWidget):
     stats_requested = Signal()
     alarm_requested = Signal()
+    history_requested = Signal()
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -18,8 +19,11 @@ class MenuPanel(QWidget):
         menu.setObjectName("hamburgerMenu")
         stats_action = menu.addAction("累计")
         alarm_action = menu.addAction("闹钟")
+        history_action = menu.addAction("历史")
         action = menu.exec(global_pos)
         if action == stats_action:
             self.stats_requested.emit()
         elif action == alarm_action:
             self.alarm_requested.emit()
+        elif action == history_action:
+            self.history_requested.emit()

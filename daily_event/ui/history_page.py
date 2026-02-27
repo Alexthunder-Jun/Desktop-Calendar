@@ -1,4 +1,4 @@
-"""Daily Event cumulative statistics page."""
+"""Work Event history page for completed items."""
 
 from __future__ import annotations
 
@@ -15,13 +15,13 @@ from PySide6.QtWidgets import (
 )
 
 if TYPE_CHECKING:
-    from daily_event.services.daily_event_service import DailyStats
+    from daily_event.domain.models import WorkEvent
 
 
-class StatsPage(QDialog):
-    def __init__(self, stats: list[DailyStats] | None = None, parent: QWidget | None = None) -> None:
+class HistoryPage(QDialog):
+    def __init__(self, events: list[WorkEvent] | None = None, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self.setWindowTitle("累计统计")
+        self.setWindowTitle("历史")
         self.setMinimumSize(480, 360)
         self.setWindowFlags(
             Qt.WindowType.Tool
@@ -31,13 +31,14 @@ class StatsPage(QDialog):
 
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
+        root.setSpacing(8)
 
-        heading = QLabel("每日事项 · 累计统计")
-        heading.setStyleSheet("font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;")
+        heading = QLabel("Work Event · 历史")
+        heading.setStyleSheet("font-size: 16px; font-weight: 600; color: #1a1a1a;")
         root.addWidget(heading)
 
-        if not stats:
-            hint = QLabel("暂无统计数据，请先添加每日事项并打卡")
+        if not events:
+            hint = QLabel("暂无历史记录")
             hint.setObjectName("emptyHint")
             hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
             root.addWidget(hint, stretch=1)
@@ -51,33 +52,29 @@ class StatsPage(QDialog):
         inner_lo.setContentsMargins(0, 0, 0, 0)
         inner_lo.setSpacing(8)
 
-        for s in stats:
-            inner_lo.addWidget(self._build_card(s))
-
+        for ev in events:
+            inner_lo.addWidget(self._build_card(ev))
         inner_lo.addStretch()
+
         scroll.setWidget(inner)
-        root.addWidget(scroll)
+        root.addWidget(scroll, stretch=1)
 
     @staticmethod
-    def _build_card(s: DailyStats) -> QWidget:
+    def _build_card(ev: WorkEvent) -> QWidget:
         card = QWidget()
-        card.setStyleSheet(
-            "background: #f5f5f5; border-radius: 8px; padding: 10px;"
-        )
+        card.setStyleSheet("background: #f5f5f5; border-radius: 8px; padding: 10px;")
         lo = QVBoxLayout(card)
         lo.setContentsMargins(12, 8, 12, 8)
         lo.setSpacing(6)
 
-        title = QLabel(s.title)
+        title = QLabel(ev.title)
         title.setStyleSheet("font-size: 14px; font-weight: 600; color: #1a1a1a;")
         lo.addWidget(title)
 
         row = QHBoxLayout()
         row.setSpacing(16)
-        row.addWidget(_metric("累计", f"{s.total_done} 天"))
-        row.addWidget(_metric("连续", f"{s.current_streak} 天"))
-        row.addWidget(_metric("创建", str(s.created_at)))
-        row.addWidget(_metric("最近完成", str(s.last_done_date) if s.last_done_date else "—"))
+        row.addWidget(_metric("区间", f"{ev.start_date} ~ {ev.end_date}"))
+        row.addWidget(_metric("完成时间", str(ev.completed_at) if ev.completed_at else "—"))
         row.addStretch()
         lo.addLayout(row)
         return card
