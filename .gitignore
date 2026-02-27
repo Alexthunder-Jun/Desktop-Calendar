@@ -1,20 +1,16 @@
-# ReCode local database
-.recode
-
-# Python
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
 *.egg-info/
 dist/
 build/
-*.spec
-venv/
-.env/
-
-# Database
+*.egg
+.eggs/
 *.db
-
-# IDE
+*.sqlite
+.recode/
+venv/
+.venv/
+*.log
 .idea/
 .vscode/

@@ -1,5 +1,3 @@
-"""Top-level entry point: python main.py"""
-
 from daily_event.app.bootstrap import run
 
 if __name__ == "__main__":
