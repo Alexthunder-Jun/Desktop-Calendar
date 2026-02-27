@@ -16,7 +16,7 @@ def get_stylesheet() -> str:
     }
 
     #contentFrame {
-        background-color: rgba(255, 255, 255, 0.92);
+        background-color: rgba(255, 255, 255, 0.85);
         border-radius: 12px;
         border: 1px solid rgba(0, 0, 0, 0.08);
     }
