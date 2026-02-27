@@ -195,4 +195,27 @@ def get_stylesheet() -> str:
         background-color: #0067c0;
         border-color: #0067c0;
     }
+
+    QComboBox {
+        border: 1px solid rgba(0, 0, 0, 0.14);
+        border-radius: 6px;
+        padding: 5px 10px;
+        background: #ffffff;
+        min-height: 24px;
+    }
+
+    QComboBox:hover {
+        border-color: rgba(0, 103, 192, 0.5);
+    }
+
+    QComboBox:focus {
+        border-color: #0067c0;
+    }
+
+    QComboBox QAbstractItemView {
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 6px;
+        padding: 4px;
+        selection-background-color: rgba(0, 103, 192, 0.1);
+    }
     """

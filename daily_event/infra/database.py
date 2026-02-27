@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from daily_event.domain.models import Base, SchemaVersion
 
-CURRENT_SCHEMA_VERSION = 3
+CURRENT_SCHEMA_VERSION = 4
 
 MIGRATIONS: dict[int, list[str]] = {
     2: [
@@ -19,6 +19,9 @@ MIGRATIONS: dict[int, list[str]] = {
     ],
     3: [
         "ALTER TABLE work_events ADD COLUMN completed_at DATETIME",
+    ],
+    4: [
+        "ALTER TABLE daily_events ADD COLUMN recurrence_rule VARCHAR(30) NOT NULL DEFAULT 'daily'",
     ],
 }
 

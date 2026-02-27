@@ -18,6 +18,7 @@ class DailyEvent(Base):
     title: Mapped[str] = mapped_column(String(200), nullable=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
     is_archived: Mapped[bool] = mapped_column(default=False)
+    recurrence_rule: Mapped[str] = mapped_column(String(30), default="daily")
 
     completions: Mapped[list[DailyCompletion]] = relationship(
         back_populates="event", cascade="all, delete-orphan"

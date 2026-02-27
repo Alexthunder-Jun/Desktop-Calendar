@@ -6,12 +6,14 @@
 
 - **月历视图** — 自绘月历网格，Work Event 以彩色横线跨日标示，支持跨周渲染
 - **Daily Event** — 每日打卡事项，自动计算连续天数和累计天数；完成后当日隐藏、次日重现
+- **每日事项设置** — 在汉堡菜单中统一管理 Daily Event，可配置间隔（工作日 / 周末 / 两天一次 / 三天一次 / 一周一次）与永久删除（带确认）
 - **Work Event** — 含起止日期的工作事项，支持完成勾选；完成后自动归入历史
 - **历史记录** — 已完成的 Work Event 归档查看，支持删除
 - **累计统计** — 查看所有 Daily Event 的累计天数、连续天数、创建日期、最近完成日期；支持删除（需确认）
-- **闹钟** — 倒计时与定时两种模式，到点通过 Windows 桌面通知 + 可选提示音提醒
+- **闹钟** — 倒计时与定时两种模式，支持滚轮式时间选择器（鼠标滚轮快速调节），到点通过 Windows 桌面通知 + 可选提示音提醒
 - **系统托盘** — 最小化到系统托盘，不占任务栏；托盘菜单支持显示/隐藏/退出
 - **悬浮窗** — 无边框半透明窗口，支持自由拖动和贴边吸附，首次启动自动定位至屏幕右侧
+- **单实例运行** — 启动时自动加锁，防止重复启动导致多个托盘和多个独立窗口
 
 ## 下载 .exe
 
@@ -71,6 +73,7 @@ python -m pytest tests/ -v
 测试覆盖：
 - 连续打卡天数计算（7 个用例）
 - Daily Event 可见性逻辑（6 个用例）
+- Daily Event 间隔规则逻辑（3 个用例）
 - 日历线段拆分与槽位分配（9 个用例）
 
 ## 目录结构
@@ -85,7 +88,7 @@ daily_event/
 │   ├── models.py     # SQLAlchemy ORM（DailyEvent, WorkEvent, Alarm...）
 │   └── enums.py      # AlarmMode, AlarmStatus
 ├── services/         # 业务逻辑（不依赖 Qt）
-│   ├── daily_event_service.py   # Daily Event CRUD + 打卡 + 连续天数
+│   ├── daily_event_service.py   # Daily Event CRUD + 打卡 + 连续天数 + 间隔策略
 │   ├── work_event_service.py    # Work Event CRUD + 完成 + 历史
 │   ├── alarm_service.py         # 闹钟创建 + 触发 + 通知
 │   ├── calendar_service.py      # 日期范围 → 日历线段拆分
@@ -99,16 +102,19 @@ daily_event/
     ├── main_window.py       # 主悬浮窗 + 系统托盘
     ├── calendar_widget.py   # 自绘月历
     ├── daily_panel.py       # Daily Event 面板
+    ├── daily_settings_page.py # Daily Event 设置页（间隔/删除）
     ├── work_panel.py        # Work Event 面板（含完成勾选）
-    ├── alarm_page.py        # 闹钟对话框
+    ├── alarm_page.py        # 闹钟对话框（滚轮时间选择）
+    ├── wheel_picker.py      # 时间滚轮选择器组件
     ├── stats_page.py        # 累计统计对话框（含删除确认）
     ├── history_page.py      # Work Event 历史对话框（含删除）
     ├── dialogs.py           # Work Event 创建/编辑对话框
-    ├── menu_panel.py        # 汉堡菜单（累计/闹钟/历史）
+    ├── menu_panel.py        # 汉堡菜单（累计/每日事项设置/闹钟/历史）
     └── styles.py            # Fluent QSS 主题
 tests/
 ├── test_daily_streak.py     # 连续打卡算法测试
 ├── test_daily_visibility.py # Daily Event 可见性测试
+├── test_daily_recurrence.py # Daily Event 间隔策略测试
 └── test_calendar_segments.py # 日历线段拆分测试
 ```
 
@@ -126,6 +132,7 @@ tests/
 | v1 | 初始表结构 |
 | v2 | `work_events` 增加 `is_completed` 字段 |
 | v3 | `work_events` 增加 `completed_at` 字段 |
+| v4 | `daily_events` 增加 `recurrence_rule` 字段 |
 
 ## 配置项
 
@@ -161,6 +168,12 @@ tests/
 
 **Q: 完成的 Work Event 去哪了？**
 勾选完成后会从主列表和日历上消失，可通过菜单 → "历史" 查看所有已完成事项。
+
+**Q: Daily Event 勾选后第二天还会出现吗？**
+会。Daily Event 设计为循环事项，默认每天刷新；若在“每日事项设置”中改为工作日/周末/间隔模式，则按对应频率出现。
+
+**Q: 想让某个 Daily Event 永久不再出现怎么办？**
+打开菜单 → "每日事项设置"，找到该事项点击“删除”，确认后即永久移除，不会再刷新到主界面。
 
 ## License
 

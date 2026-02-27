@@ -26,6 +26,7 @@ from daily_event.infra.color_allocator import ColorAllocator
 from daily_event.ui.alarm_page import AlarmPage
 from daily_event.ui.calendar_widget import CalendarWidget
 from daily_event.ui.daily_panel import DailyPanel
+from daily_event.ui.daily_settings_page import DailySettingsPage
 from daily_event.ui.history_page import HistoryPage
 from daily_event.ui.menu_panel import MenuPanel
 from daily_event.ui.stats_page import StatsPage
@@ -56,6 +57,7 @@ class MainWindow(QWidget):
         self._stats_dialog: StatsPage | None = None
         self._alarm_dialog: AlarmPage | None = None
         self._history_dialog: HistoryPage | None = None
+        self._daily_settings_dialog: DailySettingsPage | None = None
 
         self._setup_window()
         self._setup_ui()
@@ -165,6 +167,7 @@ class MainWindow(QWidget):
 
         self._menu_panel = MenuPanel(self)
         self._menu_panel.stats_requested.connect(self._show_stats)
+        self._menu_panel.daily_settings_requested.connect(self._show_daily_settings)
         self._menu_panel.alarm_requested.connect(self._show_alarm)
         self._menu_panel.history_requested.connect(self._show_history)
 
@@ -301,6 +304,27 @@ class MainWindow(QWidget):
         self._alarm_dialog.raise_()
         self._alarm_dialog.activateWindow()
 
+    def _show_daily_settings(self) -> None:
+        items = self._daily_service.get_all_settings()
+        if self._daily_settings_dialog and self._daily_settings_dialog.isVisible():
+            self._daily_settings_dialog.set_items(items)
+            self._daily_settings_dialog.raise_()
+            self._daily_settings_dialog.activateWindow()
+            return
+        self._daily_settings_dialog = DailySettingsPage(items, self)
+        self._daily_settings_dialog.delete_requested.connect(self._on_daily_settings_delete_requested)
+        self._daily_settings_dialog.recurrence_changed.connect(
+            self._on_daily_settings_recurrence_changed
+        )
+        self._daily_settings_dialog.setModal(False)
+        self._daily_settings_dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        self._daily_settings_dialog.destroyed.connect(
+            lambda: setattr(self, "_daily_settings_dialog", None)
+        )
+        self._daily_settings_dialog.show()
+        self._daily_settings_dialog.raise_()
+        self._daily_settings_dialog.activateWindow()
+
     def _show_history(self) -> None:
         events = self._work_service.get_history()
         if self._history_dialog and self._history_dialog.isVisible():
@@ -328,6 +352,18 @@ class MainWindow(QWidget):
         self._refresh_all()
         if self._history_dialog and self._history_dialog.isVisible():
             self._history_dialog.set_events(self._work_service.get_history())
+
+    def _on_daily_settings_delete_requested(self, event_id: int) -> None:
+        self._daily_service.delete(event_id)
+        self._refresh_all()
+        if self._daily_settings_dialog and self._daily_settings_dialog.isVisible():
+            self._daily_settings_dialog.set_items(self._daily_service.get_all_settings())
+
+    def _on_daily_settings_recurrence_changed(self, event_id: int, recurrence_rule: str) -> None:
+        self._daily_service.set_recurrence_rule(event_id, recurrence_rule)
+        self._refresh_all()
+        if self._daily_settings_dialog and self._daily_settings_dialog.isVisible():
+            self._daily_settings_dialog.set_items(self._daily_service.get_all_settings())
 
     # -- alarm timer --------------------------------------------------------
 
