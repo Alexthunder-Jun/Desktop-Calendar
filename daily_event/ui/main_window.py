@@ -85,6 +85,11 @@ class MainWindow(QWidget):
         cl.setContentsMargins(0, 0, 0, 0)
         cl.setSpacing(0)
 
+        self._calendar = CalendarWidget()
+        self._calendar.month_changed.connect(self._on_month_changed)
+        self._calendar.date_clicked.connect(self._on_date_clicked)
+        self._calendar.event_clicked.connect(self._on_calendar_event_clicked)
+
         cl.addWidget(self._create_top_bar())
 
         body = QWidget()
@@ -92,10 +97,6 @@ class MainWindow(QWidget):
         bl.setContentsMargins(12, 8, 12, 12)
         bl.setSpacing(16)
 
-        self._calendar = CalendarWidget()
-        self._calendar.month_changed.connect(self._on_month_changed)
-        self._calendar.date_clicked.connect(self._on_date_clicked)
-        self._calendar.event_clicked.connect(self._on_calendar_event_clicked)
         bl.addWidget(self._calendar, stretch=1)
 
         right = QWidget()
@@ -140,7 +141,7 @@ class MainWindow(QWidget):
         prev_btn = QPushButton("\u25C0")
         prev_btn.setObjectName("navButton")
         prev_btn.setFixedSize(28, 28)
-        prev_btn.clicked.connect(lambda: (self._calendar.prev_month(),))
+        prev_btn.clicked.connect(lambda: self._calendar.prev_month())
         lo.addWidget(prev_btn)
 
         self._month_label = QLabel()
@@ -150,7 +151,7 @@ class MainWindow(QWidget):
         next_btn = QPushButton("\u25B6")
         next_btn.setObjectName("navButton")
         next_btn.setFixedSize(28, 28)
-        next_btn.clicked.connect(lambda: (self._calendar.next_month(),))
+        next_btn.clicked.connect(lambda: self._calendar.next_month())
         lo.addWidget(next_btn)
 
         lo.addStretch()

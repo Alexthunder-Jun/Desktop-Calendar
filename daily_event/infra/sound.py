@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 
 class SoundService:
     def __init__(self, enabled: bool = True) -> None:
@@ -21,7 +19,6 @@ class SoundService:
         if not self._enabled:
             return
         try:
-            import subprocess
             import sys
             if sys.platform == "win32":
                 import winsound

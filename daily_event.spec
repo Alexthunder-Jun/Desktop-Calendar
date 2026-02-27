@@ -3,8 +3,6 @@
 
 import os
 
-block_cipher = None
-
 icon_path = os.path.join('resources', 'icon.ico')
 icon_arg = icon_path if os.path.exists(icon_path) else None
 
@@ -31,7 +29,7 @@ a = Analysis(
     noarchive=False,
 )
 
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure, a.zipped_data)
 
 exe = EXE(
     pyz,

@@ -34,7 +34,7 @@ class _DailyItemWidget(QWidget):
         lo.setSpacing(8)
 
         cb = QCheckBox()
-        cb.stateChanged.connect(self._on_state)
+        cb.toggled.connect(self._on_toggled)
         lo.addWidget(cb)
 
         lbl = QLabel(title)
@@ -49,8 +49,8 @@ class _DailyItemWidget(QWidget):
             )
             lo.addWidget(badge)
 
-    def _on_state(self, state: int) -> None:
-        if state == Qt.CheckState.Checked.value:
+    def _on_toggled(self, checked: bool) -> None:
+        if checked:
             self.checked.emit(self._event_id)
 
 
