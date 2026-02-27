@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QDialog,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
+    QPushButton,
     QScrollArea,
     QVBoxLayout,
     QWidget,
@@ -19,6 +21,8 @@ if TYPE_CHECKING:
 
 
 class StatsPage(QDialog):
+    delete_requested = Signal(int)
+
     def __init__(self, stats: list[DailyStats] | None = None, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self.setWindowTitle("累计统计")
@@ -28,6 +32,7 @@ class StatsPage(QDialog):
             | Qt.WindowType.WindowTitleHint
             | Qt.WindowType.WindowCloseButtonHint
         )
+        self._stats: list[DailyStats] = stats or []
 
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)
@@ -36,30 +41,38 @@ class StatsPage(QDialog):
         heading.setStyleSheet("font-size: 16px; font-weight: 600; color: #1a1a1a; margin-bottom: 8px;")
         root.addWidget(heading)
 
-        if not stats:
+        self._scroll = QScrollArea()
+        self._scroll.setWidgetResizable(True)
+        self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._inner = QWidget()
+        self._inner_lo = QVBoxLayout(self._inner)
+        self._inner_lo.setContentsMargins(0, 0, 0, 0)
+        self._inner_lo.setSpacing(8)
+        self._scroll.setWidget(self._inner)
+        root.addWidget(self._scroll)
+        self.set_stats(self._stats)
+
+    def set_stats(self, stats: list[DailyStats]) -> None:
+        self._stats = stats
+        while self._inner_lo.count() > 0:
+            item = self._inner_lo.takeAt(0)
+            w = item.widget()
+            if w:
+                w.deleteLater()
+
+        if not self._stats:
             hint = QLabel("暂无统计数据，请先添加每日事项并打卡")
             hint.setObjectName("emptyHint")
             hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            root.addWidget(hint, stretch=1)
+            self._inner_lo.addWidget(hint)
+            self._inner_lo.addStretch()
             return
 
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        inner = QWidget()
-        inner_lo = QVBoxLayout(inner)
-        inner_lo.setContentsMargins(0, 0, 0, 0)
-        inner_lo.setSpacing(8)
+        for s in self._stats:
+            self._inner_lo.addWidget(self._build_card(s))
+        self._inner_lo.addStretch()
 
-        for s in stats:
-            inner_lo.addWidget(self._build_card(s))
-
-        inner_lo.addStretch()
-        scroll.setWidget(inner)
-        root.addWidget(scroll)
-
-    @staticmethod
-    def _build_card(s: DailyStats) -> QWidget:
+    def _build_card(self, s: DailyStats) -> QWidget:
         card = QWidget()
         card.setStyleSheet(
             "background: #f5f5f5; border-radius: 8px; padding: 10px;"
@@ -79,8 +92,25 @@ class StatsPage(QDialog):
         row.addWidget(_metric("创建", str(s.created_at)))
         row.addWidget(_metric("最近完成", str(s.last_done_date) if s.last_done_date else "—"))
         row.addStretch()
+        del_btn = QPushButton("删除")
+        del_btn.setFixedHeight(26)
+        del_btn.setStyleSheet(
+            "font-size:11px; color:#c42b1c; border:1px solid #e0b4b0; border-radius:4px; padding:2px 10px;"
+        )
+        del_btn.clicked.connect(lambda checked=False, eid=s.event_id: self._confirm_delete(eid))
+        row.addWidget(del_btn)
         lo.addLayout(row)
         return card
+
+    def _confirm_delete(self, event_id: int) -> None:
+        reply = QMessageBox.question(
+            self,
+            "确认删除",
+            "确定删除该累计事项吗？删除后不可恢复。",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            self.delete_requested.emit(event_id)
 
 
 def _metric(label: str, value: str) -> QWidget:

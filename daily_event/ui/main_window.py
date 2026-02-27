@@ -275,10 +275,12 @@ class MainWindow(QWidget):
     def _show_stats(self) -> None:
         stats = self._daily_service.get_all_stats()
         if self._stats_dialog and self._stats_dialog.isVisible():
+            self._stats_dialog.set_stats(stats)
             self._stats_dialog.raise_()
             self._stats_dialog.activateWindow()
             return
         self._stats_dialog = StatsPage(stats, self)
+        self._stats_dialog.delete_requested.connect(self._on_stats_delete_requested)
         self._stats_dialog.setModal(False)
         self._stats_dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         self._stats_dialog.destroyed.connect(lambda: setattr(self, "_stats_dialog", None))
@@ -300,18 +302,32 @@ class MainWindow(QWidget):
         self._alarm_dialog.activateWindow()
 
     def _show_history(self) -> None:
+        events = self._work_service.get_history()
         if self._history_dialog and self._history_dialog.isVisible():
+            self._history_dialog.set_events(events)
             self._history_dialog.raise_()
             self._history_dialog.activateWindow()
             return
-        events = self._work_service.get_history()
         self._history_dialog = HistoryPage(events, self)
+        self._history_dialog.delete_requested.connect(self._on_history_delete_requested)
         self._history_dialog.setModal(False)
         self._history_dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
         self._history_dialog.destroyed.connect(lambda: setattr(self, "_history_dialog", None))
         self._history_dialog.show()
         self._history_dialog.raise_()
         self._history_dialog.activateWindow()
+
+    def _on_stats_delete_requested(self, event_id: int) -> None:
+        self._daily_service.delete(event_id)
+        self._refresh_all()
+        if self._stats_dialog and self._stats_dialog.isVisible():
+            self._stats_dialog.set_stats(self._daily_service.get_all_stats())
+
+    def _on_history_delete_requested(self, event_id: int) -> None:
+        self._work_service.delete(event_id)
+        self._refresh_all()
+        if self._history_dialog and self._history_dialog.isVisible():
+            self._history_dialog.set_events(self._work_service.get_history())
 
     # -- alarm timer --------------------------------------------------------
 
