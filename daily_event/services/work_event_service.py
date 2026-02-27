@@ -56,7 +56,10 @@ class WorkEventService:
         with self._db.session_scope() as session:
             return list(
                 session.execute(
-                    select(WorkEvent).order_by(WorkEvent.start_date)
+                    select(WorkEvent).order_by(
+                        WorkEvent.is_completed.asc(),
+                        WorkEvent.start_date,
+                    )
                 )
                 .scalars()
                 .all()
@@ -70,7 +73,7 @@ class WorkEventService:
                 session.execute(
                     select(WorkEvent)
                     .where(WorkEvent.start_date <= last, WorkEvent.end_date >= first)
-                    .order_by(WorkEvent.start_date)
+                    .order_by(WorkEvent.is_completed.asc(), WorkEvent.start_date)
                 )
                 .scalars()
                 .all()
@@ -82,7 +85,7 @@ class WorkEventService:
                 session.execute(
                     select(WorkEvent)
                     .where(WorkEvent.start_date <= d, WorkEvent.end_date >= d)
-                    .order_by(WorkEvent.start_date)
+                    .order_by(WorkEvent.is_completed.asc(), WorkEvent.start_date)
                 )
                 .scalars()
                 .all()
@@ -91,3 +94,9 @@ class WorkEventService:
     def get_by_id(self, event_id: int) -> Optional[WorkEvent]:
         with self._db.session_scope() as session:
             return session.get(WorkEvent, event_id)
+
+    def set_completed(self, event_id: int, completed: bool) -> None:
+        with self._db.session_scope() as session:
+            event = session.get(WorkEvent, event_id)
+            if event:
+                event.is_completed = completed

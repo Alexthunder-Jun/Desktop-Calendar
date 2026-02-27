@@ -23,7 +23,10 @@ class StatsPage(QDialog):
         super().__init__(parent)
         self.setWindowTitle("累计统计")
         self.setMinimumSize(480, 360)
-        self.setWindowFlags(self.windowFlags() & ~Qt.WindowType.WindowContextHelpButtonHint)
+        self.setWindowFlags(
+            (self.windowFlags() | Qt.WindowType.Window)
+            & ~Qt.WindowType.WindowContextHelpButtonHint
+        )
 
         root = QVBoxLayout(self)
         root.setContentsMargins(16, 16, 16, 16)

@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
+    QCheckBox,
     QDialog,
     QHBoxLayout,
     QLabel,
@@ -25,6 +26,7 @@ class _WorkItemWidget(QWidget):
     """Single row: coloured dot + title + date range."""
 
     clicked = Signal(int)
+    completed_toggled = Signal(int, bool)
 
     def __init__(
         self,
@@ -33,6 +35,7 @@ class _WorkItemWidget(QWidget):
         start_date,
         end_date,
         color_hex: str,
+        is_completed: bool,
         parent: QWidget | None = None,
     ) -> None:
         super().__init__(parent)
@@ -43,18 +46,29 @@ class _WorkItemWidget(QWidget):
         lo.setContentsMargins(6, 4, 6, 4)
         lo.setSpacing(8)
 
+        cb = QCheckBox()
+        cb.setChecked(is_completed)
+        cb.toggled.connect(self._on_toggled)
+        lo.addWidget(cb)
+
         dot = QLabel()
         dot.setFixedSize(8, 8)
         dot.setStyleSheet(f"background: {color_hex}; border-radius: 4px;")
         lo.addWidget(dot)
 
         lbl = QLabel(title)
-        lbl.setStyleSheet("font-size: 12px; color: #1a1a1a;")
+        if is_completed:
+            lbl.setStyleSheet("font-size: 12px; color: #888; text-decoration: line-through;")
+        else:
+            lbl.setStyleSheet("font-size: 12px; color: #1a1a1a;")
         lo.addWidget(lbl, stretch=1)
 
         span = QLabel(f"{start_date.month}/{start_date.day}–{end_date.month}/{end_date.day}")
-        span.setStyleSheet("font-size: 10px; color: #888;")
+        span.setStyleSheet("font-size: 10px; color: #aaa;" if is_completed else "font-size: 10px; color: #888;")
         lo.addWidget(span)
+
+    def _on_toggled(self, checked: bool) -> None:
+        self.completed_toggled.emit(self._eid, checked)
 
     def mousePressEvent(self, event) -> None:  # noqa: N802
         if event.button() == Qt.MouseButton.LeftButton:
@@ -125,6 +139,12 @@ class WorkPanel(QWidget):
     def _on_item_clicked(self, event_id: int) -> None:
         self.event_clicked.emit(event_id)
 
+    def _on_item_toggled(self, event_id: int, checked: bool) -> None:
+        if not self._service:
+            return
+        self._service.set_completed(event_id, checked)
+        self.data_changed.emit()
+
     # -- data ---
 
     def refresh(self) -> None:
@@ -143,8 +163,16 @@ class WorkPanel(QWidget):
         else:
             for ev in events:
                 color = self._colors.get_color(ev.color_index) if self._colors else "#999"
-                w = _WorkItemWidget(ev.id, ev.title, ev.start_date, ev.end_date, color)
+                w = _WorkItemWidget(
+                    ev.id,
+                    ev.title,
+                    ev.start_date,
+                    ev.end_date,
+                    color,
+                    ev.is_completed,
+                )
                 w.clicked.connect(self._on_item_clicked)
+                w.completed_toggled.connect(self._on_item_toggled)
                 self._list_layout.addWidget(w)
         self._list_layout.addStretch()
 

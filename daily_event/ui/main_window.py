@@ -6,12 +6,16 @@ from datetime import date
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QPoint, Qt, QTimer
-from PySide6.QtGui import QColor
+from PySide6.QtGui import QAction, QColor
 from PySide6.QtWidgets import (
+    QApplication,
     QGraphicsDropShadowEffect,
     QHBoxLayout,
     QLabel,
+    QMenu,
     QPushButton,
+    QStyle,
+    QSystemTrayIcon,
     QVBoxLayout,
     QWidget,
 )
@@ -47,9 +51,13 @@ class MainWindow(QWidget):
         self._drag_pos: QPoint | None = None
         self._is_snapping = False
         self._snap_threshold: int = self._config.get("snap_threshold", 20)
+        self._quit_requested = False
+        self._stats_dialog: StatsPage | None = None
+        self._alarm_dialog: AlarmPage | None = None
 
         self._setup_window()
         self._setup_ui()
+        self._setup_tray()
         self._restore_geometry()
         self._setup_timer()
         self._refresh_all()
@@ -59,11 +67,48 @@ class MainWindow(QWidget):
     def _setup_window(self) -> None:
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint
-            | Qt.WindowType.WindowStaysOnTopHint
             | Qt.WindowType.Tool
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setMinimumSize(680, 460)
+
+    def _setup_tray(self) -> None:
+        tray_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_ComputerIcon)
+        self.setWindowIcon(tray_icon)
+
+        self._tray = QSystemTrayIcon(tray_icon, self)
+        self._tray.setToolTip("桌面日历")
+
+        menu = QMenu()
+        show_action = QAction("显示窗口", self)
+        hide_action = QAction("隐藏窗口", self)
+        quit_action = QAction("退出", self)
+        show_action.triggered.connect(self._show_from_tray)
+        hide_action.triggered.connect(self.hide)
+        quit_action.triggered.connect(self._quit_app)
+        menu.addAction(show_action)
+        menu.addAction(hide_action)
+        menu.addSeparator()
+        menu.addAction(quit_action)
+        self._tray.setContextMenu(menu)
+        self._tray.activated.connect(self._on_tray_activated)
+        self._tray.show()
+
+    def _on_tray_activated(self, reason: QSystemTrayIcon.ActivationReason) -> None:
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            if self.isVisible():
+                self.hide()
+            else:
+                self._show_from_tray()
+
+    def _show_from_tray(self) -> None:
+        self.show()
+        self.raise_()
+        self.activateWindow()
+
+    def _quit_app(self) -> None:
+        self._quit_requested = True
+        QApplication.instance().quit()
 
     # -- UI construction ----------------------------------------------------
 
@@ -182,7 +227,7 @@ class MainWindow(QWidget):
 
         segments: list = []
         for ev in events:
-            color = self._color_allocator.get_color(ev.color_index)
+            color = "#b8b8b8" if ev.is_completed else self._color_allocator.get_color(ev.color_index)
             segs = self._calendar_service.split_range_to_segments(
                 ev.start_date,
                 ev.end_date,
@@ -226,12 +271,30 @@ class MainWindow(QWidget):
 
     def _show_stats(self) -> None:
         stats = self._daily_service.get_all_stats()
-        dlg = StatsPage(stats, self)
-        dlg.exec()
+        if self._stats_dialog and self._stats_dialog.isVisible():
+            self._stats_dialog.raise_()
+            self._stats_dialog.activateWindow()
+            return
+        self._stats_dialog = StatsPage(stats, self)
+        self._stats_dialog.setModal(False)
+        self._stats_dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        self._stats_dialog.destroyed.connect(lambda: setattr(self, "_stats_dialog", None))
+        self._stats_dialog.show()
+        self._stats_dialog.raise_()
+        self._stats_dialog.activateWindow()
 
     def _show_alarm(self) -> None:
-        dlg = AlarmPage(self._alarm_service, self)
-        dlg.exec()
+        if self._alarm_dialog and self._alarm_dialog.isVisible():
+            self._alarm_dialog.raise_()
+            self._alarm_dialog.activateWindow()
+            return
+        self._alarm_dialog = AlarmPage(self._alarm_service, self)
+        self._alarm_dialog.setModal(False)
+        self._alarm_dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose, True)
+        self._alarm_dialog.destroyed.connect(lambda: setattr(self, "_alarm_dialog", None))
+        self._alarm_dialog.show()
+        self._alarm_dialog.raise_()
+        self._alarm_dialog.activateWindow()
 
     # -- alarm timer --------------------------------------------------------
 
@@ -294,10 +357,21 @@ class MainWindow(QWidget):
     # -- geometry persistence -----------------------------------------------
 
     def _restore_geometry(self) -> None:
-        x = self._config.get("window.x", 100)
-        y = self._config.get("window.y", 100)
         w = self._config.get("window.width", 780)
         h = self._config.get("window.height", 520)
+        initialized = self._config.get("window.initialized", False)
+        if initialized:
+            x = self._config.get("window.x", 100)
+            y = self._config.get("window.y", 100)
+        else:
+            screen = self.screen() or QApplication.primaryScreen()
+            if screen:
+                geo = screen.availableGeometry()
+                x = geo.right() - w - 24
+                y = geo.top() + 80
+            else:
+                x, y = 100, 100
+            self._config.set("window.initialized", True)
         self.setGeometry(x, y, w, h)
 
     def closeEvent(self, event) -> None:  # noqa: N802
@@ -306,4 +380,8 @@ class MainWindow(QWidget):
         self._config.set("window.y", g.y())
         self._config.set("window.width", g.width())
         self._config.set("window.height", g.height())
-        super().closeEvent(event)
+        if self._quit_requested:
+            super().closeEvent(event)
+            return
+        self.hide()
+        event.ignore()

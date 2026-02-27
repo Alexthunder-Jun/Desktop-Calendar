@@ -47,6 +47,7 @@ class WorkEvent(Base):
     end_date: Mapped[date] = mapped_column(nullable=False)
     note: Mapped[Optional[str]] = mapped_column(Text, default="")
     color_index: Mapped[int] = mapped_column(default=0)
+    is_completed: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(default=datetime.now)
 
 

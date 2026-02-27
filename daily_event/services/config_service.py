@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_CONFIG: dict[str, Any] = {
-    "window": {"x": 100, "y": 100, "width": 780, "height": 520},
+    "window": {"x": 100, "y": 100, "width": 780, "height": 520, "initialized": False},
     "snap_threshold": 20,
     "sound_enabled": True,
     "db_path": "",

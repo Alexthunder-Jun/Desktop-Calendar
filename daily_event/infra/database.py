@@ -11,10 +11,12 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from daily_event.domain.models import Base, SchemaVersion
 
-CURRENT_SCHEMA_VERSION = 1
+CURRENT_SCHEMA_VERSION = 2
 
 MIGRATIONS: dict[int, list[str]] = {
-    # 2: ["ALTER TABLE ..."],
+    2: [
+        "ALTER TABLE work_events ADD COLUMN is_completed BOOLEAN NOT NULL DEFAULT 0",
+    ],
 }
 
 
