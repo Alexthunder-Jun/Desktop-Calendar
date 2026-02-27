@@ -230,7 +230,7 @@ class MainWindow(QWidget):
 
         segments: list = []
         for ev in events:
-            color = "#b8b8b8" if ev.is_completed else self._color_allocator.get_color(ev.color_index)
+            color = self._color_allocator.get_color(ev.color_index)
             segs = self._calendar_service.split_range_to_segments(
                 ev.start_date,
                 ev.end_date,
