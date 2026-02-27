@@ -1,6 +1,6 @@
 # 桌面日历 — Windows 悬浮窗日历 + 待办 + 闹钟
 
-一个轻量级 Windows 桌面悬浮窗应用，包含月历视图、每日打卡（Daily Event）、工作事项（Work Event）、历史记录和闹钟功能。采用 Fluent Design 风格，基于 PySide6 + SQLAlchemy + SQLite 构建。
+一个轻量级 Windows 桌面悬浮窗应用，包含月历视图、每日打卡（Daily Event）、每日事项设置、工作事项（Work Event）、历史记录和闹钟功能。采用 Fluent Design 风格，基于 PySide6 + SQLAlchemy + SQLite 构建。
 
 ## 功能概览
 
@@ -71,7 +71,7 @@ python -m pytest tests/ -v
 ```
 
 测试覆盖：
-- 连续打卡天数计算（7 个用例）
+- 连续打卡天数计算（8 个用例）
 - Daily Event 可见性逻辑（6 个用例）
 - Daily Event 间隔规则逻辑（3 个用例）
 - 日历线段拆分与槽位分配（9 个用例）
@@ -174,6 +174,9 @@ tests/
 
 **Q: 想让某个 Daily Event 永久不再出现怎么办？**
 打开菜单 → "每日事项设置"，找到该事项点击“删除”，确认后即永久移除，不会再刷新到主界面。
+
+**Q: 为什么之前会出现多个托盘图标？现在如何避免？**
+旧版本在重复启动应用时可能出现多个实例。当前版本已启用单实例锁（`app.lock`），重复启动会直接退出，确保系统托盘始终只有一个。
 
 ## License
 
